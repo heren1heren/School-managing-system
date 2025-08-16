@@ -1,8 +1,10 @@
-import * as React from 'react';
+
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
-
 import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
@@ -16,6 +18,11 @@ import { styled } from '@mui/material/styles';
 import { GoogleIcon, SitemarkIcon } from '../elements/CustomIcons';
 import AppTheme from '../../utilities/theme/AppTheme';
 import ColorModeSelect from '../../utilities/theme/ColorModeSelect';
+import useUserRegister from '../../utilities/hooks/useRegister';
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -74,19 +81,30 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 
 //     return <>Logout Page</>;
 // };
+
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
-    const [emailError, setEmailError] = React.useState(false);
-    const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-    const [passwordError, setPasswordError] = React.useState(false);
-    const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-    const [nameError, setNameError] = React.useState(false);
-    const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error' | 'info' | 'warning',
+    });
+    const { register, loading } = useUserRegister();
+    const navigate = useNavigate();
+
+    const [emailError, setEmailError] = useState(false);
+    const [emailErrorMessage, setEmailErrorMessage] = useState('');
+    const [passwordError, setPasswordError] = useState(false);
+    const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+    const [confirmError, setConfirmError] = useState(false);
+    const [confirmErrorMessage, setConfirmErrorMessage] = useState('');
+    const [nameError, setNameError] = useState(false);
+    const [nameErrorMessage, setNameErrorMessage] = useState('');
 
     const validateInputs = () => {
         const email = document.getElementById('email') as HTMLInputElement;
         const password = document.getElementById('password') as HTMLInputElement;
         const name = document.getElementById('name') as HTMLInputElement;
-
+        const confirm = document.getElementById('confirm') as HTMLInputElement;
         let isValid = true;
 
         if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
@@ -115,22 +133,75 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
             setNameError(false);
             setNameErrorMessage('');
         }
+        if (!confirm.value || confirm.value.length < 6 || confirm.value !== password.value) {
 
+            setConfirmError(true);
+            setConfirmErrorMessage('Password must be at least 6 characters long.');
+        } else {
+            setNameError(false);
+            setNameErrorMessage('');
+        }
+        if (confirm.value !== password.value) {
+
+            setConfirmError(true);
+            setConfirmErrorMessage('Confirmed Password must match Password');
+        } else {
+            setNameError(false);
+            setNameErrorMessage('');
+        }
+        // if confirm.value! or confirm.value.length < 6 or confirm.value !== password.value set 
         return isValid;
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        if (nameError || emailError || passwordError) {
-            event.preventDefault();
-            return;
-        }
+
+
+    const handleClose = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const isValid = validateInputs();
+
+        if (!isValid) return;
+
+
+
         const data = new FormData(event.currentTarget);
-        console.log({
-            name: data.get('name'),
-            lastName: data.get('lastName'),
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+        const userData = {
+            username: data.get('name') as string,
+            email: data.get('email') as string,
+            password: data.get('password') as string,
+        };
+
+        try {
+
+            await register(userData);
+
+            setSnackbar({
+                open: true,
+                message: 'User registered successfully!',
+                severity: 'success',
+            });
+            //2 second later only
+            setTimeout(() => {
+                navigate('/sign-in');
+            }, 2000);
+        } catch (err) {
+            // console.log(error)
+            setSnackbar({
+                open: true,
+                message: `Registration failed. Please try again. error: ${err} `,
+                severity: 'error',
+            });
+        }
+
+
+        // console.log({
+        //     name: data.get('name'),
+        //     lastName: data.get('lastName'),
+        //     email: data.get('email'),
+        //     password: data.get('password'),
+        // });
     };
 
     return (
@@ -180,7 +251,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                                 variant="outlined"
                                 error={emailError}
                                 helperText={emailErrorMessage}
-                                color={passwordError ? 'error' : 'primary'}
+                                color={emailError ? 'error' : 'primary'}
                             />
                         </FormControl>
                         <FormControl>
@@ -198,7 +269,25 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                                 helperText={passwordErrorMessage}
                                 color={passwordError ? 'error' : 'primary'}
                             />
+
                         </FormControl>
+                        <FormControl>
+                            <FormLabel htmlFor="confirm">Confirmed Password</FormLabel>
+                            <TextField
+                                required
+                                fullWidth
+                                name="confirmed"
+                                placeholder="••••••"
+                                type="password"
+                                id="confirm"
+                                autoComplete="new-password"
+                                variant="outlined"
+                                error={confirmError}
+                                helperText={confirmErrorMessage}
+                                color={confirmError ? 'error' : 'primary'}
+                            />
+                        </FormControl>
+
                         <FormControlLabel
                             control={<Checkbox value="allowExtraEmails" color="primary" />}
                             label="I want to receive updates via email."
@@ -207,9 +296,11 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            onClick={validateInputs}
+
+                            disabled={loading}
                         >
-                            Sign up
+                            {loading ? "signing up" : "sign up"}
+
                         </Button>
                     </Box>
                     <Divider>
@@ -219,6 +310,11 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                         <Button
                             fullWidth
                             variant="outlined"
+
+
+
+                            // implement sign up with google here
+
                             onClick={() => alert('Sign up with Google')}
                             startIcon={<GoogleIcon />}
                         >
@@ -238,6 +334,16 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                     </Box>
                 </Card>
             </SignUpContainer>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </AppTheme>
     );
 }

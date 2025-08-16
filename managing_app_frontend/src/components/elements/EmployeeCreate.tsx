@@ -11,6 +11,7 @@ import EmployeeForm, {
     type EmployeeFormState,
 } from './EmployeeForm';
 import PageContainer from './PageContainer';
+import { CRUD_BASE } from '../../utilities/constants.ts';
 
 const INITIAL_FORM_VALUES: Partial<EmployeeFormState['values']> = {
     role: 'Market',
@@ -88,7 +89,7 @@ export default function EmployeeCreate() {
                 autoHideDuration: 3000,
             });
 
-            navigate('/employees');
+            navigate(`${CRUD_BASE}/employees`);
         } catch (createError) {
             notifications.show(
                 `Failed to create employee. Reason: ${(createError as Error).message}`,
@@ -104,7 +105,7 @@ export default function EmployeeCreate() {
     return (
         <PageContainer
             title="New Employee"
-            breadcrumbs={[{ title: 'Employees', path: '/employees' }, { title: 'New' }]}
+            breadcrumbs={[{ title: 'Employees', path: `${CRUD_BASE}/employees` }, { title: 'New' }]}
         >
             <EmployeeForm
                 formState={formState}

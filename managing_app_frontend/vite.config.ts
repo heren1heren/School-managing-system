@@ -10,5 +10,10 @@ export default defineConfig({
     }
   },
   plugins: [react()],
+  server: {
+    proxy: {
+      '/auth': 'http://localhost:3000/'
+    }
+  }
 })
 // make vite understand the baseUrl and paths

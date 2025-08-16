@@ -115,7 +115,7 @@ function EmployeeEditForm({
             onSubmit={handleFormSubmit}
             onReset={handleFormReset}
             submitButtonLabel="Save"
-            backButtonPath={`${CRUD_BAS}/employees/${employeeId}`}
+            backButtonPath={`${CRUD_BASE}/employees/${employeeId}`}
         />
     );
 }

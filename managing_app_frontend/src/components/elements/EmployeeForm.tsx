@@ -19,6 +19,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router';
 import dayjs, { Dayjs } from 'dayjs';
 import type { Employee } from '../../data/employees';
+import { CRUD_BASE } from '../../utilities/constants';
 
 export interface EmployeeFormState {
     values: Partial<Omit<Employee, 'id'>>;
@@ -125,7 +126,7 @@ export default function EmployeeForm(props: EmployeeFormProps) {
     }, [formValues, onReset]);
 
     const handleBack = React.useCallback(() => {
-        navigate(backButtonPath ?? '/employees');
+        navigate(backButtonPath ?? `${CRUD_BASE}/employees`);
     }, [navigate, backButtonPath]);
 
     return (
