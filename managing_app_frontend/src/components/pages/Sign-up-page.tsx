@@ -14,8 +14,8 @@ import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
 import { GoogleIcon, SitemarkIcon } from '../elements/CustomIcons';
-import AppTheme from '../../theme/AppTheme';
-import ColorModeSelect from '../../theme/ColorModeSelect';
+import AppTheme from '../../utilities/theme/AppTheme';
+import ColorModeSelect from '../../utilities/theme/ColorModeSelect';
 
 const Card = styled(MuiCard)(({ theme }) => ({
     display: 'flex',
@@ -59,6 +59,21 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
     },
 }));
 
+// const Logout = () => {
+//     const { setToken } = useAuth();
+//     const navigate = useNavigate();
+
+//     const handleLogout = () => {
+//         setToken();
+//         navigate("/", { replace: true });
+//     };
+
+//     setTimeout(() => {
+//         handleLogout();
+//     }, 3 * 1000);
+
+//     return <>Logout Page</>;
+// };
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState('');

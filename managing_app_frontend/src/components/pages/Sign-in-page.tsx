@@ -16,9 +16,9 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AppTheme
-  from '../../theme/AppTheme';
-import CssBaseline from '@mui/material/CssBaseline';
-import ColorModeSelect from '../../theme/ColorModeSelect';
+  from '../../utilities/theme/AppTheme';
+
+import ColorModeSelect from '../../utilities/theme/ColorModeSelect';
 import { GoogleIcon, SitemarkIcon } from '../elements/CustomIcons';
 import ForgotPassword from '../elements/ForgotPassword';
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -62,6 +62,22 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     }),
   },
 }));
+
+// const Login = () => {
+//   const { setToken } = useAuth();
+//   const navigate = useNavigate();
+
+//   const handleLogin = () => {
+//     setToken("this is a test token");
+//     navigate("/", { replace: true });
+//   };
+
+//   setTimeout(() => {
+//     handleLogin();
+//   }, 3 * 1000);
+
+//   return <>Login Page</>;
+// };
 
 export default function SignIn(props: { disableCustomTheme?: boolean }) {
   const [emailError, setEmailError] = React.useState(false);
@@ -119,7 +135,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
 
   return (
     <AppTheme {...props}>
-      {/* <CssBaseline enableColorScheme /> */}
+
       <SignInContainer direction="column" justifyContent="space-between">
         <Link href='/'> homepage</Link>
         <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
