@@ -1,16 +1,10 @@
 {
+  "exclude": ["node_modules", "dist", "build", "**/*.log"],
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
   ]
   ,
-  // make ts compiler understand the baseUrl and paths
-  "compilerOptions": {
-    "baseUrl": "src",
-    "paths": {
-      "src/*": ["*"]
-    }
-  }
 
 }

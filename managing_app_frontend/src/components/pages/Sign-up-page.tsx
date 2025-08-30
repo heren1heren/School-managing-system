@@ -20,7 +20,7 @@ import AppTheme from '../../utilities/theme/AppTheme';
 import ColorModeSelect from '../../utilities/theme/ColorModeSelect';
 import useUserRegister from '../../utilities/hooks/useRegister';
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+
 import { useNavigate } from 'react-router-dom';
 
 
@@ -83,14 +83,15 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 // };
 
 export default function SignUp(props: { disableCustomTheme?: boolean }) {
+
+    const { register, loading } = useUserRegister();
+    const navigate = useNavigate();
+
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: 'success' as 'success' | 'error' | 'info' | 'warning',
     });
-    const { register, loading } = useUserRegister();
-    const navigate = useNavigate();
-
     const [emailError, setEmailError] = useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = useState('');
     const [passwordError, setPasswordError] = useState(false);
@@ -187,7 +188,7 @@ export default function SignUp(props: { disableCustomTheme?: boolean }) {
                 navigate('/sign-in');
             }, 2000);
         } catch (err) {
-            // console.log(error)
+            console.log(err)
             setSnackbar({
                 open: true,
                 message: `Registration failed. Please try again. error: ${err} `,

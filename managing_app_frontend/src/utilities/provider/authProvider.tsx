@@ -3,12 +3,12 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // implement http cookie instead?
   const [token, setToken_] = useState(localStorage.getItem("token"));
 
   // Function to set the authentication token
-  const setToken = (newToken) => {
+  const setToken = (newToken: string) => {
     setToken_(newToken);
   };
 

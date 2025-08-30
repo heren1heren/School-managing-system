@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { AxiosError } from "axios";
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import {
   Typography,
   Stack,
   Card as MuiCard,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import AppTheme
@@ -21,6 +23,10 @@ import AppTheme
 import ColorModeSelect from '../../utilities/theme/ColorModeSelect';
 import { GoogleIcon, SitemarkIcon } from '../elements/CustomIcons';
 import ForgotPassword from '../elements/ForgotPassword';
+import api from '../../data/api';
+import { useEffect, useRef, useState, useContext } from 'react';
+import AuthContext, { useAuth } from './../../utilities/contexts/AuthProvider.tsx';
+
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
@@ -63,28 +69,25 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
   },
 }));
 
-// const Login = () => {
-//   const { setToken } = useAuth();
-//   const navigate = useNavigate();
-
-//   const handleLogin = () => {
-//     setToken("this is a test token");
-//     navigate("/", { replace: true });
-//   };
-
-//   setTimeout(() => {
-//     handleLogin();
-//   }, 3 * 1000);
-
-//   return <>Login Page</>;
-// };
 
 export default function SignIn(props: { disableCustomTheme?: boolean }) {
-  const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [open, setOpen] = React.useState(false);
+  const { setAuth } = useAuth();
+  const emailRef = useRef<HTMLInputElement>(null);
+  const [errMessage, setErrMessage] = useState('');
+  useEffect(() => {
+    emailRef.current?.focus();
+  }, [])
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success' as 'success' | 'error' | 'info' | 'warning',
+  });
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+  const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -94,17 +97,6 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
     setOpen(false);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
 
   const validateInputs = () => {
     const email = document.getElementById('email') as HTMLInputElement;
@@ -132,10 +124,71 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
 
     return isValid;
   };
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const isValid = validateInputs();
+    if (!isValid) {
+      return;
+    }
 
+
+    const data = new FormData(event.currentTarget);
+    const email = data.get('email');
+    const password = data.get('password');
+    try {
+
+      const response = await api.post(`auth/login`, JSON.stringify({ email, password }), {
+        headers: {
+          'Content-Type': 'application/json',
+          widthCredential: true
+        }
+      })
+      // const responseData = JSON.stringify({
+      //   response?.data
+      // })
+
+      console.log(JSON.stringify(response?.data))
+      const accessToken = response?.data?.accessToken;
+      const roles = response?.data?.roles;
+      // setAuth({ email, password, roles, accessToken })
+      setSnackbar({
+        open: true,
+        message: `User login in successfully!`,
+        severity: 'success',
+      });
+
+      // success -> go to crud board
+
+    } catch (error: unknown) { // how to do the type correctly? response is not exist in {} object
+      //snackbar
+      if (isAxiosError(error)) {
+        if (!error.response) {
+          setErrMessage('No Server Response');
+        } else if (error.response.status === 400) {
+          setErrMessage('missing email or password');
+        } else if (error.response.status === 401) {
+          setErrMessage('Unauthorized');
+        }
+      } else {
+        // Non-Axios error
+        setErrMessage('An unexpected error occurred');
+      }
+      setSnackbar({
+        open: true,
+        message: `Login failed, error: ${errMessage}`,
+        severity: 'error',
+      });
+    }
+
+  };
+
+  function isAxiosError(err: unknown): err is AxiosError {
+    return (err as AxiosError).isAxiosError === true;
+  }
   return (
     <AppTheme {...props}>
-
+      {/* if loading ...  */}
+      {/* if success depends on role then switch default home page */}
       <SignInContainer direction="column" justifyContent="space-between">
         <Link href='/'> homepage</Link>
         <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
@@ -162,6 +215,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
             <FormControl>
               <FormLabel htmlFor="email">Email</FormLabel>
               <TextField
+                ref={emailRef}
                 error={emailError}
                 helperText={emailErrorMessage}
                 id="email"
@@ -202,7 +256,7 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
               type="submit"
               fullWidth
               variant="contained"
-              onClick={validateInputs}
+
             >
               Sign in
             </Button>
@@ -240,6 +294,16 @@ export default function SignIn(props: { disableCustomTheme?: boolean }) {
           </Box>
         </Card>
       </SignInContainer>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleClose} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </AppTheme>
   );
 }
